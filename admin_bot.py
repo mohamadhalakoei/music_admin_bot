@@ -49,6 +49,7 @@ def download_audio(update, context):
         file_name = audio_file.file_name
         artist = file_name.split('-')[0]
         title = file_name.split('-')[1][0:-4]
+        title = title.replace("(320)", "").replace("(128)", "") if "(320)" in title or "(128)" in title else title
         new_file = context.bot.get_file(file_id)
         context.bot.send_message(chat_id=update.effective_chat.id, text=f"downloading...")
         new_file.download(MUSIC_PATH + f'{title.strip()}.mp3')
