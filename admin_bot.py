@@ -57,6 +57,19 @@ def download_audio(update, context):
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
 
+def list_music(update, context):
+    user_id = update.effective_user.id
+    if check_password(user_id, context.args):
+        files = [file for file in os.listdir(MUSIC_PATH) if file.endswith('.mp3')]
+        if files:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="List of available music files:")
+            for file in files:
+                context.bot.send_message(chat_id=update.effective_chat.id, text=file)
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="No music files found.")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
+        
 def main():
     # create an Updater object and attach it to your bot's token
     updater = Updater(token=TOKEN, use_context=True)
@@ -67,6 +80,7 @@ def main():
     # register a handler for the all command
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(MessageHandler(Filters.audio, download_audio))
+    dispatcher.add_handler(CommandHandler('list', list_music))
 
     # start the bot
     updater.start_polling()
