@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3, TIT2, TPE1
 
 load_dotenv()
 
@@ -54,6 +56,8 @@ def download_audio(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text=f"downloading...")
         new_file.download(MUSIC_PATH + f'{title.strip()}.mp3')
         context.bot.send_message(chat_id=update.effective_chat.id, text=f"downloaded...")
+        edit_audio_metadata(MUSIC_PATH + f'{title.strip()}.mp3', title.strip(), artist.strip())
+        context.bot.send_message(chat_id=update.effective_chat.id, text=f"music metadata changed...")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
 
@@ -69,7 +73,13 @@ def list_music(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text="No music files found.")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
-        
+
+def edit_audio_metadata(file_path, title, artist):
+    audio = MP3(file_path, ID3=ID3)
+    audio["TIT2"] = TIT2(encoding=3, text=title)
+    audio["TPE1"] = TPE1(encoding=3, text=artist)
+    audio.save()
+
 def main():
     # create an Updater object and attach it to your bot's token
     updater = Updater(token=TOKEN, use_context=True)
