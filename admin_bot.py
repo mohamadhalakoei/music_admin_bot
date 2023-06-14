@@ -7,11 +7,16 @@ load_dotenv()
 TOKEN = os.getenv("TOKEN")
 PASSWORD = os.getenv("PASSWORD")
 AUTHORIZED_USERS_FILE = os.getenv("AUTHORIZED_USERS_FILE")
+MUSIC_PATH = os.getcwd() + '/Music/'
 
 # Create the authorized users file if it doesn't exist
 if not os.path.isfile(AUTHORIZED_USERS_FILE):
     with open(AUTHORIZED_USERS_FILE, "w") as f:
         f.write("")
+
+# Check if the Music directory exists, if not create it
+if not os.path.isdir(MUSIC_PATH):
+    os.mkdir(MUSIC_PATH)
 
 # Command Functions
 def start(update, context):
