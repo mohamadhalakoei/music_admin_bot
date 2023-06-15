@@ -89,7 +89,7 @@ def send_audio(update, context):
     if check_password(user_id, context.args):
         if len(context.args) > 0:
             # Extract audio file name and caption from the command arguments
-            file_name = context.args[0]
+            file_name = " ".join(context.args[:])
         else:
             # If no file name is provided, use the first file in the directory
             files = [file for file in os.listdir(MUSIC_PATH) if file.endswith('.mp3')]
@@ -134,7 +134,7 @@ def delete_music(update, context):
     user_id = update.effective_user.id
     if check_password(user_id, context.args):
         if len(context.args) > 0:
-            file_name = context.args[0]
+            file_name = " ".join(context.args[:])
             if delete_music_file(file_name):
                 context.bot.send_message(chat_id=update.effective_chat.id, text=f"Music file {file_name} deleted.")
             else:
