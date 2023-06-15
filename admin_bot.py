@@ -115,6 +115,7 @@ def send_audio(update, context):
         try:
             context.bot.send_audio(chat_id=CHANNEL_ID, audio=open(file_path, "rb"), caption=caption)
             context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} sent to the channel.")
+            os.remove(file_path)
         except Exception:
             context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to send audio file.")
     else:
