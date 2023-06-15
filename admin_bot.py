@@ -128,6 +128,28 @@ def read_audio_metadata(audio_path):
     artist = artist.replace(' ','_')
     return title, artist
 
+def delete_music(update, context):
+    user_id = update.effective_user.id
+    if check_password(user_id, context.args):
+        if len(context.args) > 0:
+            file_name = context.args[0]
+            if delete_music_file(file_name):
+                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Music file {file_name} deleted.")
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Music file {file_name} not found.")
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Please specify the name of the music file to delete.")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
+
+def delete_music_file(file_name):
+    file_path = os.path.join(MUSIC_PATH, file_name)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return True
+    else:
+        return False
+    
 def main():
     # create an Updater object and attach it to your bot's token
     updater = Updater(token=TOKEN, use_context=True)
@@ -140,6 +162,7 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.audio, download_audio))
     dispatcher.add_handler(CommandHandler('list', list_music))
     dispatcher.add_handler(CommandHandler('send', send_audio))
+    dispatcher.add_handler(CommandHandler('delete', delete_music))
 
     # start the bot
     updater.start_polling()
