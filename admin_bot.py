@@ -10,6 +10,7 @@ TOKEN = os.getenv("TOKEN")
 PASSWORD = os.getenv("PASSWORD")
 AUTHORIZED_USERS_FILE = os.getenv("AUTHORIZED_USERS_FILE")
 MUSIC_PATH = os.getcwd() + '/Music/'
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 # Create the authorized users file if it doesn't exist
 if not os.path.isfile(AUTHORIZED_USERS_FILE):
@@ -80,6 +81,27 @@ def edit_audio_metadata(file_path, title, artist):
     audio["TPE1"] = TPE1(encoding=3, text=artist)
     audio.save()
 
+def send_audio(update, context):
+    user_id = update.effective_user.id
+    if check_password(user_id, context.args):
+        if len(context.args) > 0:
+            # Extract audio file name and caption from the command arguments
+            file_name = context.args[0]
+            caption = " ".join(context.args[1:])
+            # Check if the audio file exists
+            file_path = MUSIC_PATH + file_name
+            print(file_path)
+            if os.path.exists(file_path):
+                # Send the audio file to the channel with the given caption
+                context.bot.send_audio(chat_id=CHANNEL_ID, audio=open(file_path, "rb"), caption=caption)
+                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} sent to the channel.")
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} not found.")
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Please specify an audio file name.")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
+
 def main():
     # create an Updater object and attach it to your bot's token
     updater = Updater(token=TOKEN, use_context=True)
@@ -91,6 +113,7 @@ def main():
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(MessageHandler(Filters.audio, download_audio))
     dispatcher.add_handler(CommandHandler('list', list_music))
+    dispatcher.add_handler(CommandHandler('send', send_audio))
 
     # start the bot
     updater.start_polling()
