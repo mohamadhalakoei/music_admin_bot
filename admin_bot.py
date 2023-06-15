@@ -151,7 +151,27 @@ def delete_music_file(file_name):
         return True
     else:
         return False
-    
+
+def get_music(update, context):
+    user_id = update.effective_user.id
+    if check_password(user_id, context.args):
+        if len(context.args) > 0:
+            # Get the name of the music file from the user's message
+            music_name = ' '.join(context.args)
+
+            # Check if the music file exists in the music directory
+            music_path = os.path.join(MUSIC_PATH, music_name)
+            if not os.path.exists(music_path):
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, this music file does not exist.")
+                return
+
+            # Send the music file to the user
+            context.bot.send_audio(chat_id=update.effective_chat.id, audio=open(music_path, 'rb'))
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Please specify the name of the music file to send.")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
+
 def main():
     # create an Updater object and attach it to your bot's token
     updater = Updater(token=TOKEN, use_context=True)
@@ -165,6 +185,7 @@ def main():
     dispatcher.add_handler(CommandHandler('list', list_music))
     dispatcher.add_handler(CommandHandler('send', send_audio))
     dispatcher.add_handler(CommandHandler('delete', delete_music))
+    dispatcher.add_handler(CommandHandler("get", get_music))
 
     # start the bot
     updater.start_polling()
