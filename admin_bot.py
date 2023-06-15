@@ -88,18 +88,35 @@ def send_audio(update, context):
         if len(context.args) > 0:
             # Extract audio file name and caption from the command arguments
             file_name = context.args[0]
-            # Check if the audio file exists
-            file_path = MUSIC_PATH + file_name
-            title, artist = read_audio_metadata(file_path)
-            caption = f"🎶 {title}\n\n🎙 #{artist}\n\n🎧 {CHANNEL}"
-            if os.path.exists(file_path):
-                # Send the audio file to the channel with the given caption
-                context.bot.send_audio(chat_id=CHANNEL_ID, audio=open(file_path, "rb"), caption=caption)
-                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} sent to the channel.")
-            else:
-                context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} not found.")
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Please specify an audio file name.")
+            # If no file name is provided, use the first file in the directory
+            files = [file for file in os.listdir(MUSIC_PATH) if file.endswith('.mp3')]
+            if files:
+                file_name = files[0]
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="No music files found.")
+                return
+
+        # Check if the audio file exists
+        file_path = MUSIC_PATH + file_name
+        if not os.path.exists(file_path):
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} not found.")
+            return
+
+        # Get the audio metadata
+        try:
+            title, artist = read_audio_metadata(file_path)
+        except Exception:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to read audio metadata.")
+            return
+
+        # Send the audio file to the channel with the given caption
+        caption = f"🎶 {title}\n\n🎙 #{artist}\n\n🎧 {CHANNEL}"
+        try:
+            context.bot.send_audio(chat_id=CHANNEL_ID, audio=open(file_path, "rb"), caption=caption)
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Audio file {file_name} sent to the channel.")
+        except Exception:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to send audio file.")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
 
