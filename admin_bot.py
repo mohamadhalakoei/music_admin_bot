@@ -11,6 +11,7 @@ PASSWORD = os.getenv("PASSWORD")
 AUTHORIZED_USERS_FILE = os.getenv("AUTHORIZED_USERS_FILE")
 MUSIC_PATH = os.getcwd() + '/Music/'
 CHANNEL_ID = os.getenv("CHANNEL_ID")
+CHANNEL = os.getenv("CHANNEL")
 
 # Create the authorized users file if it doesn't exist
 if not os.path.isfile(AUTHORIZED_USERS_FILE):
@@ -87,10 +88,10 @@ def send_audio(update, context):
         if len(context.args) > 0:
             # Extract audio file name and caption from the command arguments
             file_name = context.args[0]
-            caption = " ".join(context.args[1:])
             # Check if the audio file exists
             file_path = MUSIC_PATH + file_name
-            print(file_path)
+            title, artist = read_audio_metadata(file_path)
+            caption = f"🎶 {title}\n\n🎙 #{artist}\n\n🎧 {CHANNEL}"
             if os.path.exists(file_path):
                 # Send the audio file to the channel with the given caption
                 context.bot.send_audio(chat_id=CHANNEL_ID, audio=open(file_path, "rb"), caption=caption)
@@ -101,6 +102,13 @@ def send_audio(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text="Please specify an audio file name.")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have access.")
+
+def read_audio_metadata(audio_path):
+    audio = MP3(audio_path)
+    title = audio.get("TIT2").text[0]
+    artist = audio.get("TPE1").text[0]
+    artist = artist.replace(' ','_')
+    return title, artist
 
 def main():
     # create an Updater object and attach it to your bot's token
